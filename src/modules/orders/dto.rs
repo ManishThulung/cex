@@ -22,7 +22,7 @@ pub struct CreateOrderResponse {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct Orders {
+pub struct Depth {
   pub bids: Vec<[u32; 2]>,
   pub asks: Vec<[u32; 2]>,
   pub last_updated_at: String,

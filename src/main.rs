@@ -1,10 +1,12 @@
+use std::sync::{Arc, Mutex};
+
 use actix_web::{App, HttpResponse, HttpServer, middleware::Logger, web};
 
 use server::{
   config::AppConfig,
   db::{create_pool, run_migrations},
   modules::{
-    orders::routes::configure as configure_order_routes,
+    orders::{model::Orderbook, routes::configure as configure_order_routes},
     users::{
       repository::UserRepository, routes::configure as configure_user_routes, service::UserService,
     },
@@ -29,8 +31,9 @@ async fn main() -> std::io::Result<()> {
     .expect("Failed to run database migrations");
 
   let users = UserService::new(UserRepository::new(pool));
+  let orderbook = Arc::new(Mutex::new(Orderbook::new()));
 
-  let state = web::Data::new(AppState { users });
+  let state = web::Data::new(AppState { users, orderbook });
 
   let host = config.host.clone();
   let port = config.port;
