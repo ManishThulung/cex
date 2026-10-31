@@ -1,9 +1,10 @@
-use super::dto::UserResponse;
 use crate::helpers::hash::{hash_password, verify_password};
 use crate::helpers::jwt::generate_token;
 use crate::helpers::response::ApiResponse;
 use crate::modules::auth::dto::{SigninRequest, SignupRequest};
 use crate::{errors::AppError, state::AppState};
+use actix_web::cookie::time::Duration;
+use actix_web::cookie::{Cookie, SameSite};
 use actix_web::{HttpResponse, web};
 
 pub async fn signup(
@@ -17,10 +18,10 @@ pub async fn signup(
     .create_user(body.name, body.email, hashed_password)
     .await?;
 
-  Ok(HttpResponse::Created().json(ApiResponse {
+  Ok(HttpResponse::Created().json(ApiResponse::<()> {
     success: true,
     message: String::from("Signup successful"),
-    data: (),
+    data: None,
   }))
 }
 
@@ -35,33 +36,18 @@ pub async fn signin(
   if !is_verifed {
     Err(AppError::InvalidCredentials)
   } else {
-    let token = generate_token(user.id.to_string());
-    Ok(HttpResponse::Ok().json(ApiResponse {
+    let token = generate_token(user.id.to_string(), &state.config.jwt_secret);
+    let cookie = Cookie::build("access_token", token)
+      .http_only(true)
+      .secure(false)
+      .same_site(SameSite::Lax)
+      .path("/")
+      .max_age(Duration::hours(24))
+      .finish();
+    Ok(HttpResponse::Ok().cookie(cookie).json(ApiResponse::<()> {
       message: String::from("Signin successful"),
       success: true,
-      data: (token),
+      data: None,
     }))
   }
 }
-
-// pub async fn update_user(
-//   state: web::Data<AppState>,
-//   id: web::Path<Uuid>,
-//   body: web::Json<UpdateUserRequest>,
-// ) -> Result<HttpResponse, AppError> {
-//   let user = state
-//     .users
-//     .update(id.into_inner(), body.into_inner())
-//     .await?;
-
-//   Ok(HttpResponse::Ok().json(UserResponse::from(user)))
-// }
-
-// pub async fn delete_user(
-//   state: web::Data<AppState>,
-//   id: web::Path<Uuid>,
-// ) -> Result<HttpResponse, AppError> {
-//   state.users.delete(id.into_inner()).await?;
-
-//   Ok(HttpResponse::NoContent().finish())
-// }

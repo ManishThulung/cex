@@ -36,6 +36,7 @@ async fn main() -> std::io::Result<()> {
   let orderbook = Arc::new(Mutex::new(Orderbook::new()));
 
   let state = web::Data::new(AppState {
+    config: config.clone(),
     users,
     auth,
     orderbook,

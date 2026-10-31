@@ -1,23 +1,31 @@
 use crate::{
   errors::AppError,
-  modules::orders::dto::{
-    CancelOrderRequest, CreateOrderRequest, CreateOrderResponse, OrderParams,
-  },
+  helpers::{jwt::Claims, response::ApiResponse},
+  modules::orders::dto::{CancelOrderRequest, CreateOrderRequest, OrderParams},
   state::AppState,
 };
-use actix_web::{HttpResponse, web};
+use actix_web::{HttpMessage, HttpRequest, HttpResponse, web};
+use serde_json::json;
+use uuid::Uuid;
 
 pub async fn create_order(
+  req: HttpRequest,
   state: web::Data<AppState>,
   body: web::Json<CreateOrderRequest>,
 ) -> Result<HttpResponse, AppError> {
+  let claims = req
+    .extensions()
+    .get::<Claims>()
+    .cloned()
+    .ok_or(AppError::Unauthorized)?;
+  let order_id = Uuid::new_v4();
   let mut orderbook = state.orderbook.lock().unwrap();
-  orderbook.create_order(body.into_inner(), String::from("2"));
+  orderbook.create_order(body.into_inner(), claims.sub, order_id);
 
-  Ok(HttpResponse::Ok().json(CreateOrderResponse {
+  Ok(HttpResponse::Ok().json(ApiResponse {
     success: true,
     message: String::from("value"),
-    data: String::from("value"),
+    data: Some(json!({ "order_id": order_id })),
   }))
 }
 
@@ -30,16 +38,16 @@ pub async fn delete_order(
   let deleted = orderbook.delete_order(path.order_id, body.0.side);
 
   if deleted {
-    Ok(HttpResponse::Ok().json(CreateOrderResponse {
+    Ok(HttpResponse::Ok().json(ApiResponse::<()> {
       success: true,
       message: String::from("order deleted successfully"),
-      data: String::from("value"),
+      data: None,
     }))
   } else {
-    Ok(HttpResponse::Ok().json(CreateOrderResponse {
+    Ok(HttpResponse::Ok().json(ApiResponse::<()> {
       success: false,
       message: String::from("cannot delete your order"),
-      data: String::from("value"),
+      data: None,
     }))
   }
 }

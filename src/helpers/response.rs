@@ -4,5 +4,5 @@ use serde::Serialize;
 pub struct ApiResponse<T> {
   pub success: bool,
   pub message: String,
-  pub data: T,
+  pub data: Option<T>,
 }

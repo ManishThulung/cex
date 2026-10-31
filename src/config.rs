@@ -6,6 +6,7 @@ pub struct AppConfig {
   pub port: u16,
   pub database_url: String,
   pub database_max_connections: u32,
+  pub jwt_secret: String,
 }
 
 impl AppConfig {
@@ -25,6 +26,8 @@ impl AppConfig {
       .parse::<u32>()
       .map_err(|_| "DATABASE_MAX_CONNECTIONS must be a positive integer".to_string())?;
 
+    let jwt_secret = env::var("JWT_SECRET").unwrap_or_else(|_| "test-secret".to_string());
+
     if database_max_connections == 0 {
       return Err("DATABASE_MAX_CONNECTIONS must be greater than zero".to_string());
     }
@@ -34,6 +37,7 @@ impl AppConfig {
       port,
       database_url,
       database_max_connections,
+      jwt_secret,
     })
   }
 }

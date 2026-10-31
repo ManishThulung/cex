@@ -2,6 +2,7 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+#[derive(Deserialize)]
 pub struct OrderParams {
   pub order_id: Uuid,
 }
@@ -24,12 +25,6 @@ pub struct CreateOrderRequest {
 pub struct CancelOrderRequest {
   // pub volume: Decimal,
   pub side: OrderSide,
-}
-#[derive(Debug, Serialize)]
-pub struct CreateOrderResponse<T> {
-  pub success: bool,
-  pub message: String,
-  pub data: T,
 }
 
 #[derive(Deserialize, Serialize)]

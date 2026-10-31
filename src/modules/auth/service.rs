@@ -1,9 +1,7 @@
-use uuid::Uuid;
-
 use super::model::User;
 use crate::errors::AppError;
-use crate::modules::auth::dto::SignupRequest;
 use crate::modules::auth::repository::AuthRepository;
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct AuthService {

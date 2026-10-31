@@ -38,7 +38,12 @@ impl Orderbook {
     }
   }
 
-  pub fn create_order(&mut self, order_request: CreateOrderRequest, user_id: String) {
+  pub fn create_order(
+    &mut self,
+    order_request: CreateOrderRequest,
+    user_id: String,
+    order_id: Uuid,
+  ) {
     let order = match order_request.side {
       OrderSide::Buy => &mut self.buy,
       OrderSide::Sell => &mut self.sell,
@@ -55,7 +60,7 @@ impl Orderbook {
       // Create a new order.
       orders.push(OrderDetail {
         user_id,
-        order_id: Uuid::new_v4(),
+        order_id,
         side: order_request.side,
         volume: order_request.volume,
         created_at: Utc::now(),
