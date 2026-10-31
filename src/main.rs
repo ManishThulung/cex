@@ -1,11 +1,11 @@
-use std::sync::{Arc, Mutex};
-
 use actix_web::{App, HttpResponse, HttpServer, middleware::Logger, web};
-
 use server::{
   config::AppConfig,
-  db::{create_pool, run_migrations},
+  db::create_pool,
   modules::{
+    auth::{
+      repository::AuthRepository, routes::configure as configure_auth_routes, service::AuthService,
+    },
     orders::{model::Orderbook, routes::configure as configure_order_routes},
     users::{
       repository::UserRepository, routes::configure as configure_user_routes, service::UserService,
@@ -13,6 +13,7 @@ use server::{
   },
   state::AppState,
 };
+use std::sync::{Arc, Mutex};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -26,14 +27,19 @@ async fn main() -> std::io::Result<()> {
     .await
     .expect("Failed to connect to PostgreSQL");
 
-  run_migrations(&pool)
-    .await
-    .expect("Failed to run database migrations");
+  // run_migrations(&pool)
+  //   .await
+  //   .expect("Failed to run database migrations");
 
-  let users = UserService::new(UserRepository::new(pool));
+  let users = UserService::new(UserRepository::new(pool.clone()));
+  let auth = AuthService::new(AuthRepository::new(pool.clone()));
   let orderbook = Arc::new(Mutex::new(Orderbook::new()));
 
-  let state = web::Data::new(AppState { users, orderbook });
+  let state = web::Data::new(AppState {
+    users,
+    auth,
+    orderbook,
+  });
 
   let host = config.host.clone();
   let port = config.port;
@@ -55,7 +61,8 @@ async fn main() -> std::io::Result<()> {
       .service(
         web::scope("/api/v1")
           .configure(configure_user_routes)
-          .configure(configure_order_routes),
+          .configure(configure_order_routes)
+          .configure(configure_auth_routes),
       )
   })
   .bind((host, port))?

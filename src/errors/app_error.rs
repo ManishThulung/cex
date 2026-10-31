@@ -16,6 +16,9 @@ pub enum AppError {
 
   #[error("Database operation failed")]
   Database(#[from] sqlx::Error),
+
+  #[error("Invalid credentials")]
+  InvalidCredentials,
 }
 
 #[derive(Serialize)]
@@ -29,6 +32,7 @@ impl AppError {
       Self::Validation(_) => StatusCode::BAD_REQUEST,
       Self::NotFound => StatusCode::NOT_FOUND,
       Self::Conflict => StatusCode::CONFLICT,
+      Self::InvalidCredentials => StatusCode::BAD_REQUEST,
       Self::Database(sqlx::Error::Database(error)) if error.code().as_deref() == Some("23505") => {
         StatusCode::CONFLICT
       }
@@ -41,6 +45,7 @@ impl AppError {
       Self::Validation(message) => message.clone(),
       Self::NotFound => "Resource not found".to_string(),
       Self::Conflict => "Resource already exists".to_string(),
+      Self::InvalidCredentials => "Invalid credentials".to_string(),
       Self::Database(sqlx::Error::Database(error)) if error.code().as_deref() == Some("23505") => {
         "A record with this unique value already exists".to_string()
       }

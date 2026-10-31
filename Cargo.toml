@@ -23,3 +23,6 @@ rust_decimal = { version = "1", features = ["serde"] }
 
 env_logger = "0.11"
 log = "0.4"
+jsonwebtoken = { version = "11.1.0", default-features = false, features = ["rust_crypto"] }
+argon2 = { version = "0.5", features = ["std", "rand"] }
+

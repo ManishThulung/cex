@@ -1,12 +1,10 @@
-use std::collections::{BTreeMap, HashMap};
-
+use crate::modules::orders::dto::{CreateOrderRequest, Depth, OrderSide};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
-use serde::{Deserialize, Serialize, de};
-use uuid::Uuid;
-
-use crate::modules::orders::dto::{CreateOrderRequest, Depth, OrderSide};
 use rust_decimal::prelude::ToPrimitive;
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Order {
@@ -26,6 +24,7 @@ pub struct Orderbook {
 #[derive(Debug, Clone, Deserialize)]
 pub struct OrderDetail {
   pub user_id: String,
+  pub order_id: Uuid,
   pub side: OrderSide,
   pub volume: Decimal,
   pub created_at: DateTime<Utc>,
@@ -56,6 +55,7 @@ impl Orderbook {
       // Create a new order.
       orders.push(OrderDetail {
         user_id,
+        order_id: Uuid::new_v4(),
         side: order_request.side,
         volume: order_request.volume,
         created_at: Utc::now(),
@@ -63,8 +63,32 @@ impl Orderbook {
     }
   }
 
+  pub fn delete_order(&mut self, order_id: Uuid, side: OrderSide) -> bool {
+    let book = match side {
+      OrderSide::Buy => &mut self.buy,
+      OrderSide::Sell => &mut self.sell,
+    };
+
+    let mut found = false;
+
+    book.retain(|_, orders| {
+      let original_len = orders.len();
+
+      orders.retain(|order| order.order_id != order_id);
+
+      if orders.len() < original_len {
+        found = true;
+      }
+
+      // Remove price level if it has no remaining orders.
+      !orders.is_empty()
+    });
+
+    found
+  }
+
   pub fn to_depth(&self) -> Depth {
-    let bids = self
+    let buy = self
       .buy
       .iter()
       .rev()
@@ -78,7 +102,7 @@ impl Orderbook {
       })
       .collect();
 
-    let asks = self
+    let sell = self
       .sell
       .iter()
       .map(|(price, orders)| {
@@ -92,8 +116,8 @@ impl Orderbook {
       .collect();
 
     Depth {
-      bids,
-      asks,
+      buy,
+      sell,
       last_updated_at: Utc::now().to_rfc3339(),
     }
   }
