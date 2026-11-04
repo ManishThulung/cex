@@ -6,6 +6,7 @@ use server::{
     auth::{
       repository::AuthRepository, routes::configure as configure_auth_routes, service::AuthService,
     },
+    markets::spots::{repository::SpotRepository, service::SpotService},
     orders::{model::Orderbook, routes::configure as configure_order_routes},
     users::{
       repository::UserRepository, routes::configure as configure_user_routes, service::UserService,
@@ -33,12 +34,14 @@ async fn main() -> std::io::Result<()> {
 
   let users = UserService::new(UserRepository::new(pool.clone()));
   let auth = AuthService::new(AuthRepository::new(pool.clone()));
+  let spots = SpotService::new(SpotRepository::new(pool.clone()));
   let orderbook = Arc::new(Mutex::new(Orderbook::new()));
 
   let state = web::Data::new(AppState {
     config: config.clone(),
     users,
     auth,
+    spots,
     orderbook,
   });
 

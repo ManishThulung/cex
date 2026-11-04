@@ -6,6 +6,7 @@ use crate::{errors::AppError, state::AppState};
 use actix_web::cookie::time::Duration;
 use actix_web::cookie::{Cookie, SameSite};
 use actix_web::{HttpResponse, web};
+use solana_sdk::signer::{Signer, keypair::Keypair};
 
 pub async fn signup(
   state: web::Data<AppState>,
@@ -17,6 +18,9 @@ pub async fn signup(
     .auth
     .create_user(body.name, body.email, hashed_password)
     .await?;
+  let keypair = Keypair::new();
+  println!("private key: {:?}", keypair.to_bytes());
+  println!("public key: {:?}", keypair.pubkey());
 
   Ok(HttpResponse::Created().json(ApiResponse::<()> {
     success: true,

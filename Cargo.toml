@@ -26,3 +26,9 @@ log = "0.4"
 jsonwebtoken = { version = "11.1.0", default-features = false, features = ["rust_crypto"] }
 argon2 = { version = "0.5", features = ["std", "rand"] }
 
+actix-web-actors = "4"
+tokio-stream = { version = "0.1", features = ["sync"] }
+actix = "0.13.5"
+solana-sdk = "5.0.0"
+validator = { version = "0.21.0", features = ["derive"] }
+
