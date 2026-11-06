@@ -7,6 +7,9 @@ pub struct AppConfig {
   pub database_url: String,
   pub database_max_connections: u32,
   pub jwt_secret: String,
+
+  pub redis_url: String,
+  pub redis_pool_max_size: usize,
 }
 
 impl AppConfig {
@@ -32,12 +35,23 @@ impl AppConfig {
       return Err("DATABASE_MAX_CONNECTIONS must be greater than zero".to_string());
     }
 
+    let redis_url = env::var("REDIS_URL").map_err(|_| "REDIS_URL is required".to_string())?;
+    let redis_pool_max_size = env::var("REDIS_POOL_MAX_SIZE")
+      .unwrap_or_else(|_| "16".to_string())
+      .parse::<usize>()
+      .map_err(|_| "REDIS_POOL_MAX_SIZE must be a positive integer".to_string())?;
+    if redis_pool_max_size == 0 {
+      return Err("REDIS_POOL_MAX_SIZE must be greater than zero".to_string());
+    }
+
     Ok(Self {
       host,
       port,
       database_url,
       database_max_connections,
       jwt_secret,
+      redis_url,
+      redis_pool_max_size,
     })
   }
 }

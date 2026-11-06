@@ -2,6 +2,7 @@ use actix_web::{App, HttpResponse, HttpServer, middleware::Logger, web};
 use server::{
   config::AppConfig,
   db::create_pool,
+  infrastructure::redis::{cache::RedisService, conn::create_redis_pool},
   modules::{
     auth::{
       repository::AuthRepository, routes::configure as configure_auth_routes, service::AuthService,
@@ -24,18 +25,23 @@ async fn main() -> std::io::Result<()> {
 
   let config = AppConfig::from_env().expect("Invalid application configuration");
 
-  let pool = create_pool(&config)
+  let db_pool = create_pool(&config)
     .await
     .expect("Failed to connect to PostgreSQL");
+
+  let redis_pool = create_redis_pool(&config.redis_url, config.redis_pool_max_size)
+    .expect("Failed to create Redis pool");
 
   // run_migrations(&pool)
   //   .await
   //   .expect("Failed to run database migrations");
 
-  let users = UserService::new(UserRepository::new(pool.clone()));
-  let auth = AuthService::new(AuthRepository::new(pool.clone()));
-  let spots = SpotService::new(SpotRepository::new(pool.clone()));
+  let users = UserService::new(UserRepository::new(db_pool.clone()));
+  let auth = AuthService::new(AuthRepository::new(db_pool.clone()));
+  let spots = SpotService::new(SpotRepository::new(db_pool.clone()));
   let orderbook = Arc::new(Mutex::new(Orderbook::new()));
+
+  let redis = RedisService::new(redis_pool);
 
   let state = web::Data::new(AppState {
     config: config.clone(),
@@ -43,6 +49,8 @@ async fn main() -> std::io::Result<()> {
     auth,
     spots,
     orderbook,
+
+    redis,
   });
 
   let host = config.host.clone();

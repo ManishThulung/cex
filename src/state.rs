@@ -1,3 +1,4 @@
+use crate::infrastructure::redis::cache::RedisService;
 use crate::modules::auth::service::AuthService;
 use crate::modules::orders::model::Orderbook;
 use crate::modules::users::service::UserService;
@@ -11,4 +12,6 @@ pub struct AppState {
   pub auth: AuthService,
   pub spots: SpotService,
   pub orderbook: Arc<Mutex<Orderbook>>,
+
+  pub redis: RedisService,
 }

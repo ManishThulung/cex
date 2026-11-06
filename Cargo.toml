@@ -31,4 +31,5 @@ tokio-stream = { version = "0.1", features = ["sync"] }
 actix = "0.13.5"
 solana-sdk = "5.0.0"
 validator = { version = "0.21.0", features = ["derive"] }
+deadpool-redis = { version = "0.23.1", features = ["rt_tokio_1"] }
 
