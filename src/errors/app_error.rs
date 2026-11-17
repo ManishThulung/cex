@@ -11,7 +11,6 @@ pub enum AppError {
   #[error("{0}")]
   BadRequest(String),
 
-  // 401 - Unauthorized
   #[error("Authentication required")]
   Unauthorized,
 
@@ -21,31 +20,24 @@ pub enum AppError {
   #[error("Invalid or expired token")]
   InvalidToken,
 
-  // 403 - Forbidden
   #[error("Access forbidden")]
   Forbidden,
 
-  // 404 - Not Found
   #[error("Resource not found")]
   NotFound,
 
-  // 409 - Conflict
   #[error("Resource conflict")]
   Conflict,
 
-  // 429 - Too Many Requests
   #[error("Too many requests")]
   TooManyRequests,
 
-  // 500 - Internal Server Error
   #[error("Internal server error")]
   InternalServerError,
 
-  // 503 - Service Unavailable
   #[error("Service unavailable")]
   ServiceUnavailable,
 
-  // Database errors
   #[error("Database operation failed")]
   Database(#[from] sqlx::Error),
 }

@@ -1,6 +1,7 @@
 use crate::infrastructure::redis::cache::RedisService;
 use crate::modules::auth::service::AuthService;
-use crate::modules::orders::model::Orderbook;
+use crate::modules::orders::engine::MatchingEngine;
+// use crate::modules::orders::model::Orderbook;
 use crate::modules::users::service::UserService;
 use crate::{config::AppConfig, modules::markets::spots::service::SpotService};
 use std::sync::{Arc, Mutex};
@@ -11,7 +12,7 @@ pub struct AppState {
   pub users: UserService,
   pub auth: AuthService,
   pub spots: SpotService,
-  pub orderbook: Arc<Mutex<Orderbook>>,
+  pub orderbook: Arc<Mutex<MatchingEngine>>,
 
   pub redis: RedisService,
 }

@@ -8,7 +8,7 @@ use server::{
       repository::AuthRepository, routes::configure as configure_auth_routes, service::AuthService,
     },
     markets::spots::{repository::SpotRepository, service::SpotService},
-    orders::{model::Orderbook, routes::configure as configure_order_routes},
+    orders::{engine::MatchingEngine, routes::configure as configure_order_routes},
     users::{
       repository::UserRepository, routes::configure as configure_user_routes, service::UserService,
     },
@@ -39,7 +39,7 @@ async fn main() -> std::io::Result<()> {
   let users = UserService::new(UserRepository::new(db_pool.clone()));
   let auth = AuthService::new(AuthRepository::new(db_pool.clone()));
   let spots = SpotService::new(SpotRepository::new(db_pool.clone()));
-  let orderbook = Arc::new(Mutex::new(Orderbook::new()));
+  let orderbook = Arc::new(Mutex::new(MatchingEngine::new()));
 
   let redis = RedisService::new(redis_pool);
 
